@@ -1,0 +1,9 @@
+[package]
+name = "rustycar"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+[dependencies]
+rppal = "0.13.1"
