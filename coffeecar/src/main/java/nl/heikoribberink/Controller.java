@@ -1,6 +1,8 @@
 package nl.heikoribberink;
 
 import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
 
 import com.badlogic.gdx.controllers.ControllerListener;
 import com.badlogic.gdx.controllers.PovDirection;
@@ -38,13 +40,22 @@ public class Controller implements ControllerListener {
 		byte mode = 0;
 		switch(axisCode) {
 			case 1:
-				mode |= 0x1;
+				mode = 1;
 			break;
 			case 3:
-				mode |= 0x2;
+				mode = 2;
 			break;
 			default:
 			break;
+		}
+		if (mode == 0) return false;
+		try {
+			byte[] b = new byte[] {mode, (byte) (value * 255.0)};
+			out.write(b);
+			out.flush();
+			System.out.println("Send: " + Arrays.toString(b));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
