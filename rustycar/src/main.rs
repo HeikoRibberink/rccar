@@ -25,7 +25,7 @@ const L_B: u8 = 6;
 const R_F: u8 = 23;
 const R_B: u8 = 24;
 
-const STOP: u8 = 0;
+const STOP: u8 = 255;
 const LEFT: u8 = 1;
 const RIGHT: u8 = 2;
 
@@ -73,7 +73,8 @@ const MIN_DUTY: f64 = 0.3;
 fn magic_fn(num: u8) -> f64 {
 	let num = unsafe {
 		let num = *(&num as *const u8 as *const i8);
-		num as f64
-	};
+		num
+	} as f64;
+	if num == 0.0 {return 0.0;}
 	(num / std::i8::MAX as f64) * (1.0 - MIN_DUTY) + (MIN_DUTY * if num > 0.0 {1.0} else {-1.0})
 }
