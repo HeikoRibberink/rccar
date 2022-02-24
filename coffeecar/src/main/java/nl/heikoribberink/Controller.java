@@ -27,6 +27,13 @@ public class Controller implements ControllerListener {
 
 	public boolean buttonDown(com.badlogic.gdx.controllers.Controller controller, int buttonCode) {
 		// TODO Auto-generated method stub
+		try {
+			out.write(new byte[] {-1, 0});
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		App.running = false;
 		return false;
 	}
 
@@ -50,12 +57,13 @@ public class Controller implements ControllerListener {
 		}
 		if (mode == 0) return false;
 		try {
-			byte[] b = new byte[] {mode, (byte) (value * 255.0)};
+			byte[] b = new byte[] {mode, (byte) (-value * 127.0)};
 			out.write(b);
 			out.flush();
 			System.out.println("Send: " + Arrays.toString(b));
 		} catch (IOException e) {
 			e.printStackTrace();
+			App.running = false;
 		}
 		return false;
 	}

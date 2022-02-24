@@ -20,8 +20,8 @@ fn main() {
 	}
 }
 
-const L_F: u8 = 5;
-const L_B: u8 = 6;
+const L_F: u8 = 17;
+const L_B: u8 = 27;
 const R_F: u8 = 23;
 const R_B: u8 = 24;
 
@@ -34,6 +34,10 @@ fn handle_stream(mut stream: TcpStream, gpio: &mut Gpio, running: &mut bool) -> 
 	let mut pin_l_b = gpio.get(L_B).unwrap().into_output();
 	let mut pin_r_f = gpio.get(R_F).unwrap().into_output();
 	let mut pin_r_b = gpio.get(R_B).unwrap().into_output();
+	pin_l_f.set_reset_on_drop(true);
+	pin_l_b.set_reset_on_drop(true);
+	pin_r_f.set_reset_on_drop(true);
+	pin_r_b.set_reset_on_drop(true);
 	while *running {
 		let buf = &mut [0u8; 2];
 		stream.read(buf)?;
@@ -55,26 +59,30 @@ use rppal::gpio;
 const FREQUENCY: f64 = 100.0;
 
 fn handle_motor(pin_f: &mut OutputPin, pin_b: &mut OutputPin, speed: f64) -> gpio::Result<()> {
+	println!("Speed: {}", speed);
 	if speed == 0.0 {
-		pin_f.set_low();
-		pin_b.set_low();
+		println!("ZERO!");
+		pin_f.clear_pwm()?;
+		pin_b.clear_pwm()?;
 	} else if speed > 0.0 {
-		pin_b.set_low();
+		pin_b.clear_pwm()?;
 		pin_f.set_pwm_frequency(FREQUENCY, speed)?;
 	} else if speed < 0.0 {
-		pin_f.set_low();
+		pin_f.clear_pwm()?;
 		pin_b.set_pwm_frequency(FREQUENCY, -speed)?;
 	}
 	Ok(())
 }
 
 const MIN_DUTY: f64 = 0.3;
+const ROUND: i8 = 10;
 
 fn magic_fn(num: u8) -> f64 {
 	let num = unsafe {
-		let num = *(&num as *const u8 as *const i8);
-		num
-	} as f64;
+		*(&num as *const u8 as *const i8)
+	};
+	if num < ROUND && num > -ROUND {return 0.0;}
+	let num = num as f64;
 	if num == 0.0 {return 0.0;}
 	(num / std::i8::MAX as f64) * (1.0 - MIN_DUTY) + (MIN_DUTY * if num > 0.0 {1.0} else {-1.0})
 }
