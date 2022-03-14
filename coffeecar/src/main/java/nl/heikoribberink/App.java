@@ -8,7 +8,6 @@ import java.net.UnknownHostException;
 import uk.co.electronstudio.sdl2gdx.SDL2ControllerManager;
 
 import org.libsdl.SDL_Error;
-
 public class App {
 
 	private static final String HOST = "192.168.2.60";
