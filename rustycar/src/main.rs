@@ -74,21 +74,24 @@ fn handle_stream(
 				eprintln!("Unexpected header from server: {h} with value {value}")
 			}
 		}
-		match header {
-			STOP => *running = false,
-			LEFT_Y => {
-				steer()
-			}
-			h => {
-
-			}
-		}
 	}
 	Ok(())
 }
 
-fn steer() {
+fn steer() ->  {
 
+}
+
+const delta: f64 = 0.00001;
+const length: f64 = 5;
+const width: f64 = 1;
+fn differential_steering(a: f64) -> (f64, f64) {
+	if a == 0 {return (1.0, 1.0)}
+	inner = (delta * a.cos() / (delta * a.sin() / length)) - width * 0.5;
+	outer = inner + width;
+	inner /= outer;
+	outer = 1.0; //outer /= outer
+	if a > 0 {(inner, outer)} else {(outer, inner)}
 }
 
 fn unsigned_to_signed(num: u8) -> i8 {

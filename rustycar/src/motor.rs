@@ -42,10 +42,3 @@ pub fn servo(pin: &mut OutputPin, angle: f64) -> gpio::Result<()> {
 	)?;
 	Ok(())
 }
-
-#[test]
-pub fn angle() {
-	use std::f64::consts::{PI, FRAC_1_PI};
-	const angle: f64 = 0.25 * PI;
-	assert_eq!(angle * FRAC_1_PI * 0.5, angle / (2.0 * PI));
-}
