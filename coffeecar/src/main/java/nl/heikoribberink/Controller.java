@@ -22,13 +22,13 @@ public class Controller implements ControllerListener {
 
 	public void disconnected(com.badlogic.gdx.controllers.Controller controller) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public boolean buttonDown(com.badlogic.gdx.controllers.Controller controller, int buttonCode) {
 		// TODO Auto-generated method stub
 		try {
-			out.write(new byte[] {-1, 0});
+			out.write(new byte[] { -1, 0 });
 			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -43,21 +43,20 @@ public class Controller implements ControllerListener {
 	}
 
 	public boolean axisMoved(com.badlogic.gdx.controllers.Controller controller, int axisCode, float value) {
-		//lx = 0, ly = 1, rx = 2, ry = 3;
+		// lx = 0, ly = 1, rx = 2, ry = 3;
 		byte mode = 0;
-		switch(axisCode) {
+		switch (axisCode) {
 			case 1:
 				mode = 1;
-			break;
-			case 3:
+				break;
+			case 2:
 				mode = 2;
-			break;
+				break;
 			default:
-			break;
+				return false;
 		}
-		if (mode == 0) return false;
 		try {
-			byte[] b = new byte[] {mode, (byte) (-value * 127.0)};
+			byte[] b = new byte[] { mode, (byte) (-value * 127.0) };
 			out.write(b);
 			out.flush();
 			System.out.println("Send: " + Arrays.toString(b));
@@ -88,5 +87,5 @@ public class Controller implements ControllerListener {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
 }

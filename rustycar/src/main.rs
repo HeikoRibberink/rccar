@@ -5,7 +5,7 @@ use std::net::{TcpListener, TcpStream};
 
 // mod test;
 mod motor;
-use motor::{motor, motor_speed_to_duty};
+use motor::{motor, motor_speed_to_duty, servo};
 
 
 fn main() {
@@ -25,7 +25,6 @@ fn car() {
 
 	while running {
 		if let Ok((stream, _address)) = tcpl.accept() {
-			// eprintln!("{:?}", handle_stream_tank(stream, &mut gpio, &mut running).err());
 			eprintln!("{:?}", handle_stream(stream, &mut gpio, &mut running).err());
 		}
 	}
@@ -38,10 +37,11 @@ const R_B: u8 = 24;
 const SERVO: u8 = 25;
 
 const STOP: u8 = 255;
-const LEFT_X: u8 = 1;
-const LEFT_Y: u8 = 2;
-const RIGHT_X: u8 = 3;
-const RIGHT_Y: u8 = 4;
+// const LEFT_X: u8 = 0;
+const LEFT_Y: u8 = 1;
+const RIGHT_X: u8 = 2;
+// const RIGHT_Y: u8 = 3;
+
 
 fn handle_stream(
 	mut stream: TcpStream,
@@ -54,9 +54,9 @@ fn handle_stream(
 	let mut pin_l_b = gpio.get(L_B).unwrap().into_output();
 	let mut pin_r_f = gpio.get(R_F).unwrap().into_output();
 	let mut pin_r_b = gpio.get(R_B).unwrap().into_output();
-	let mut servo = gpio.get(SERVO).unwrap().into_output();
+	let mut pin_servo = gpio.get(SERVO).unwrap().into_output();
 	let mut speed: f64 = 0.0;
-	let mut steering: f64 = 0.0;
+	let mut angle: f64 = 0.0;
 	while *running {
 		let buf = &mut [0u8; 2];
 		stream.read(buf)?;
@@ -65,35 +65,38 @@ fn handle_stream(
 		match header {
 			STOP => *running = false,
 			LEFT_Y => {
-				motor(&mut pin_l_f, &mut pin_l_b, motor_speed_to_duty(unsigned_to_signed(value) as f64)).unwrap();
+				speed = byte_to_signed(value) as f64 / 128.0;
 			}
-			RIGHT_Y => {
-				motor(&mut pin_r_f, &mut pin_r_b, motor_speed_to_duty(unsigned_to_signed(value) as f64)).unwrap();
+			RIGHT_X => {
+				angle = byte_to_signed(value) as f64 / 256.0 * std::f64::consts::PI;
 			}
 			h => {
 				eprintln!("Unexpected header from server: {h} with value {value}")
 			}
 		}
+		//Update motors
+		let (left, right) = differential_steering(angle);
+		println!("Angle: {} \t Speed: {} \t Steering: {}, {}", angle, speed, left * speed, right * speed);
+		motor(&mut pin_l_f, &mut pin_l_b, motor_speed_to_duty(left * speed)).unwrap();
+		motor(&mut pin_r_f, &mut pin_r_b, motor_speed_to_duty(right * speed)).unwrap();
+		servo(&mut pin_servo, angle).unwrap();
 	}
 	Ok(())
 }
 
-fn steer() ->  {
-
-}
-
-const delta: f64 = 0.00001;
-const length: f64 = 5;
-const width: f64 = 1;
-fn differential_steering(a: f64) -> (f64, f64) {
-	if a == 0 {return (1.0, 1.0)}
-	inner = (delta * a.cos() / (delta * a.sin() / length)) - width * 0.5;
-	outer = inner + width;
+const DELTA: f64 = 0.00001;
+const LENGTH: f64 = 5.0;
+const WIDTH: f64 = 1.0;
+fn differential_steering(i: f64) -> (f64, f64) {
+	let a = i.abs();
+	if a == 0.0 {return (1.0, 1.0)}
+	let mut inner = (DELTA * a.cos() / (DELTA * a.sin() / LENGTH).asin()) - WIDTH * 0.5;
+	let mut outer = inner + WIDTH;
 	inner /= outer;
 	outer = 1.0; //outer /= outer
-	if a > 0 {(inner, outer)} else {(outer, inner)}
+	if i > 0.0 {(inner, outer)} else {(outer, inner)}
 }
 
-fn unsigned_to_signed(num: u8) -> i8 {
+fn byte_to_signed(num: u8) -> i8 {
 	unsafe { *(&num as *const u8 as *const i8) }
 }

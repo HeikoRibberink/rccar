@@ -2,6 +2,7 @@ use rppal::gpio::{self, OutputPin};
 use std::time::Duration;
 
 pub fn motor(pin_f: &mut OutputPin, pin_b: &mut OutputPin, speed: f64) -> gpio::Result<()> {
+	if speed.abs() > 1.0 {panic!("Speed ({}) is outside of range [-1, 1]", speed)}
 	const MOTOR_FREQUENCY: f64 = 100.0;
 	if speed == 0.0 {
 		pin_f.clear_pwm()?;
@@ -34,7 +35,7 @@ pub fn servo(pin: &mut OutputPin, angle: f64) -> gpio::Result<()> {
 	const MAX_ANGLE: f64 = 0.5 * PI;
 	
 	if angle < MIN_ANGLE || angle > MAX_ANGLE {
-		panic!("Steering angle is outside of range [-PI/2; PI/2]");
+		panic!("Steering angle {} is outside of range [-PI/2; PI/2]", angle);
 	}
 	pin.set_pwm(
 		Duration::from_millis(20),
