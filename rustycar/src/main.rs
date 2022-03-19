@@ -77,8 +77,8 @@ fn handle_stream(
 		//Update motors
 		let (left, right) = differential_steering(angle);
 		println!("Angle: {} \t Speed: {} \t Steering: {}, {}", angle, speed, left * speed, right * speed);
-		motor(&mut pin_l_f, &mut pin_l_b, motor_speed_to_duty(left * speed)).unwrap();
-		motor(&mut pin_r_f, &mut pin_r_b, motor_speed_to_duty(right * speed)).unwrap();
+		motor(&mut pin_l_f, &mut pin_l_b, (left * speed)).unwrap();
+		motor(&mut pin_r_f, &mut pin_r_b, (right * speed)).unwrap();
 		servo(&mut pin_servo, angle).unwrap();
 	}
 	Ok(())
